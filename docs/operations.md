@@ -31,6 +31,24 @@ After promotion, the old writer must never restart as a writer. An application
 binary rollback does not reverse database ownership; a reverse transfer needs its
 own fenced procedure.
 
+## Pilot validation
+
+The pilot transfer compared the application schema, table hashes and sequence
+high-water marks before promotion and after the former writer rejoined. Its
+fresh working replica passed `pg_verifybackup`. The retired transfer directory
+was removed only after streamed recovery, API role checks and release verification.
+
+A bounded process-loss drill stopped only the app API, not a host or database.
+Both HTTPS entry points continued safe reads, rejected mutations with a read-only
+service response, and returned to the writer after restart. This establishes the
+tested API fallback path. It does not establish full-host DNS recovery or prove
+lossless automatic database promotion.
+
+An operator launcher timeout once left a still-running seed child. Inspect the
+actual process and progress before retrying; a timeout is not proof that the
+underlying copy stopped. Verify a completed manifest before finalizing it, and
+do not run a second seed into the same directory.
+
 ## Recovery drills
 
 First test local API-process loss. Separately test reserve GET behavior, denied

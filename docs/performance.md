@@ -27,6 +27,17 @@ reduces wire bytes. A response-local shared avatar map avoids repeated strings
 without creating a cross-user photo cache. Legacy clients retain their DTO shape;
 new clients restore ordinary DTOs before rendering or persistence.
 
+After the transfer, two bounded read-only samples of the 24-item shared-avatar
+feed returned about 100–155 ms at the app origin. The compact overview returned
+about 183–224 ms. Warm local SQL probes usually took 0.3–1.7 ms; first connection
+setup was measured separately. This removes the cross-server database dependency
+but is not a high-concurrency load test.
+
+Decoded feed JSON fell from roughly 1.48 MB to 106 KB for the same data. Compressed
+transfer remained near 63 KB because compression already removed much repeated
+text. The gain is less JSON allocation and parsing, not a fourteenfold reduction
+in network traffic.
+
 ## Client behavior
 
 Cache personalized data per account, deduplicate concurrent reads, preserve the
